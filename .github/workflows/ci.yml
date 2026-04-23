@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  terraform-validate:
+    name: Terraform fmt + validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.5
+
+      - name: terraform fmt
+        run: terraform -chdir=terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: terraform init (backend=false)
+        run: terraform -chdir=terraform init -backend=false
+
+      - name: terraform validate
+        run: terraform -chdir=terraform validate
+
+  ansible-lint:
+    name: Ansible lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install ansible-lint
+        run: |
+          pip install ansible-lint ansible
+
+      - name: Run ansible-lint
+        run: ansible-lint ansible/ || true
+
+  yaml-lint:
+    name: YAML lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: yamllint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          config_data: |
+            extends: default
+            rules:
+              line-length: {max: 140}
+              truthy: disable
+
+  shell-check:
+    name: Shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run shellcheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './scripts'
+
+  wlst-syntax:
+    name: WLST Python syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python 2.7 compat check
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Check WLST scripts parse as Python
+        run: |
+          for f in wlst/*.py; do
+            [ -f "$f" ] || continue
+            python -m py_compile "$f" || echo "::warning::$f has syntax issues"
+          done

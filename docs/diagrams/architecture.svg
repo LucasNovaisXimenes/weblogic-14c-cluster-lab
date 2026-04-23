@@ -1,0 +1,84 @@
+<svg width="680" viewBox="0 0 680 620" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>WebLogic 14c Cluster Lab — IaC Architecture</title>
+<desc>Three-tier pipeline: Terraform provisions a Hyper-V VM, Ansible configures WebLogic inside it, WLST creates the domain with AdminServer, Node Manager, two Managed Servers in a cluster, a Data Source and a deployed app.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#73726c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<style>
+.box-gray { fill: #F1EFE8; stroke: #5F5E5A; }
+.box-purple { fill: #EEEDFE; stroke: #534AB7; }
+.box-teal { fill: #E1F5EE; stroke: #0F6E56; }
+.box-blue { fill: #E6F1FB; stroke: #185FA5; }
+.box-amber { fill: #FAEEDA; stroke: #854F0B; }
+.box-coral { fill: #FAECE7; stroke: #993C1D; }
+.t-gray { fill: #2C2C2A; font-family: sans-serif; }
+.t-purple { fill: #26215C; font-family: sans-serif; }
+.t-teal { fill: #04342C; font-family: sans-serif; }
+.t-blue { fill: #042C53; font-family: sans-serif; }
+.t-amber { fill: #412402; font-family: sans-serif; }
+.t-coral { fill: #4A1B0C; font-family: sans-serif; }
+.th { font-size: 14px; font-weight: 500; }
+.ts { font-size: 12px; font-weight: 400; }
+.arr { stroke: #73726c; stroke-width: 1.5; fill: none; }
+</style>
+</defs>
+
+<rect class="box-gray" x="30" y="30" width="620" height="100" rx="12" stroke-width="0.5"/>
+<text class="th t-gray" x="50" y="54">Host (Windows)</text>
+<text class="ts t-gray" x="50" y="72">IaC toolchain</text>
+
+<rect class="box-purple" x="60" y="84" width="160" height="36" rx="6" stroke-width="0.5"/>
+<text class="th t-purple" x="140" y="107" text-anchor="middle">Terraform</text>
+
+<rect class="box-purple" x="260" y="84" width="160" height="36" rx="6" stroke-width="0.5"/>
+<text class="th t-purple" x="340" y="107" text-anchor="middle">Ansible</text>
+
+<rect class="box-purple" x="460" y="84" width="160" height="36" rx="6" stroke-width="0.5"/>
+<text class="th t-purple" x="540" y="107" text-anchor="middle">WLST scripts</text>
+
+<line x1="220" y1="102" x2="256" y2="102" class="arr" marker-end="url(#arrow)"/>
+<line x1="420" y1="102" x2="456" y2="102" class="arr" marker-end="url(#arrow)"/>
+<line x1="340" y1="130" x2="340" y2="160" class="arr" marker-end="url(#arrow)"/>
+<text class="ts t-gray" x="350" y="148">provisions &amp; configures</text>
+
+<rect class="box-teal" x="30" y="170" width="620" height="430" rx="12" stroke-width="0.5"/>
+<text class="th t-teal" x="50" y="194">VM Ubuntu 24 (Hyper-V)</text>
+<text class="ts t-teal" x="50" y="212">WebLogic domain: base_domain</text>
+
+<rect class="box-blue" x="60" y="240" width="560" height="60" rx="8" stroke-width="0.5"/>
+<text class="th t-blue" x="340" y="266" text-anchor="middle">AdminServer :7001</text>
+<text class="ts t-blue" x="340" y="284" text-anchor="middle">Management plane — config.xml, JMX, console</text>
+
+<rect class="box-amber" x="60" y="320" width="260" height="60" rx="8" stroke-width="0.5"/>
+<text class="th t-amber" x="190" y="346" text-anchor="middle">Node Manager :5556</text>
+<text class="ts t-amber" x="190" y="364" text-anchor="middle">Plain mode, per-domain</text>
+
+<rect class="box-gray" x="360" y="320" width="260" height="60" rx="8" stroke-width="0.5"/>
+<text class="th t-gray" x="490" y="346" text-anchor="middle">Machine: LocalMachine</text>
+<text class="ts t-gray" x="490" y="364" text-anchor="middle">Bridges AdminServer to NM</text>
+
+<line x1="320" y1="350" x2="356" y2="350" class="arr" marker-end="url(#arrow)"/>
+<line x1="260" y1="300" x2="260" y2="316" class="arr" marker-end="url(#arrow)"/>
+
+<rect class="box-teal" x="60" y="400" width="560" height="90" rx="10" stroke-width="0.5" stroke-dasharray="4 4" fill="none"/>
+<text class="th t-teal" x="80" y="422">cluster1</text>
+
+<rect class="box-blue" x="90" y="438" width="240" height="40" rx="6" stroke-width="0.5"/>
+<text class="th t-blue" x="210" y="462" text-anchor="middle">ms1 :8001 — RUNNING</text>
+
+<rect class="box-blue" x="350" y="438" width="240" height="40" rx="6" stroke-width="0.5"/>
+<text class="th t-blue" x="470" y="462" text-anchor="middle">ms2 :8002 — RUNNING</text>
+
+<rect class="box-coral" x="60" y="510" width="280" height="70" rx="8" stroke-width="0.5"/>
+<text class="th t-coral" x="200" y="536" text-anchor="middle">DataSource LabDS</text>
+<text class="ts t-coral" x="200" y="554" text-anchor="middle">JNDI: jdbc/LabDS</text>
+<text class="ts t-coral" x="200" y="570" text-anchor="middle">Pool 1–15, targeted in both MS</text>
+
+<rect class="box-coral" x="360" y="510" width="260" height="70" rx="8" stroke-width="0.5"/>
+<text class="th t-coral" x="490" y="536" text-anchor="middle">App hello.war</text>
+<text class="ts t-coral" x="490" y="554" text-anchor="middle">JSP + JDBC lookup</text>
+<text class="ts t-coral" x="490" y="570" text-anchor="middle">Deployed on cluster1</text>
+
+<line x1="210" y1="478" x2="210" y2="508" class="arr" marker-end="url(#arrow)"/>
+<line x1="470" y1="478" x2="470" y2="508" class="arr" marker-end="url(#arrow)"/>
+<line x1="340" y1="545" x2="358" y2="545" class="arr" marker-end="url(#arrow)"/>
+</svg>

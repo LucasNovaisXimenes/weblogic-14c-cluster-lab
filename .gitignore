@@ -1,0 +1,39 @@
+# ========= Terraform =========
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl
+crash.log
+crash.*.log
+
+# ========= Ansible =========
+ansible/inventory
+*.retry
+.vault_pass
+
+# ========= Binários WebLogic (licença Oracle) =========
+binaries/
+*.jar
+!wlst/**/*.py
+*.img
+*.iso
+*.vhdx
+
+# ========= SSH keys =========
+*.pem
+id_rsa*
+*.key
+
+# ========= Sistema =========
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# ========= Logs / temp =========
+*.log
+tmp/
