@@ -1,0 +1,41 @@
+---
+- name: Verifica se zip está instalado (necessário para buildar o WAR)
+  ansible.builtin.apt:
+    name: zip
+    state: present
+
+- name: Cria diretório temporário de build
+  ansible.builtin.file:
+    path: "{{ stage_dir }}/hello-war"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: '0755'
+
+- name: Copia código da aplicação para a VM
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../app/"
+    dest: "{{ stage_dir }}/hello-war/"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+
+- name: Empacota WAR
+  ansible.builtin.command:
+    cmd: zip -r "{{ stage_dir }}/{{ app_war }}" .
+    chdir: "{{ stage_dir }}/hello-war"
+    creates: "{{ stage_dir }}/{{ app_war }}"
+  become_user: "{{ oracle_user }}"
+
+- name: Executa WLST 06 — deploy da aplicação no cluster
+  ansible.builtin.command:
+    cmd: "{{ wlst_bin }} {{ wlst_scripts_dir }}/06-deploy-app.py"
+  become_user: "{{ oracle_user }}"
+  environment:
+    JAVA_HOME: "/usr/lib/jvm/java-{{ jdk_major }}-openjdk-amd64"
+    WL_ADMIN_USER: "{{ wl_admin_user }}"
+    WL_ADMIN_PASSWORD: "{{ wl_admin_password }}"
+    WL_ADMIN_URL: "{{ wl_admin_url }}"
+    WL_APP_WAR: "{{ stage_dir }}/{{ app_war }}"
+    WL_APP_NAME: "{{ app_name }}"
+    WL_CLUSTER_NAME: "{{ cluster_name }}"
+  changed_when: true

@@ -1,0 +1,132 @@
+---
+- name: Verifica se domínio já existe
+  ansible.builtin.stat:
+    path: "{{ domain_home }}/config/config.xml"
+  register: domain_config
+
+- name: Executa script WLST 01 — cria domínio (offline)
+  ansible.builtin.command:
+    cmd: "{{ wlst_bin }} {{ wlst_scripts_dir }}/01-create-domain.py"
+    creates: "{{ domain_home }}/config/config.xml"
+  become_user: "{{ oracle_user }}"
+  environment:
+    JAVA_HOME: "/usr/lib/jvm/java-{{ jdk_major }}-openjdk-amd64"
+    WL_ADMIN_USER: "{{ wl_admin_user }}"
+    WL_ADMIN_PASSWORD: "{{ wl_admin_password }}"
+    WL_DOMAIN_PATH: "{{ domain_home }}"
+    WL_MIDDLEWARE_HOME: "{{ middleware_home }}"
+
+- name: Instala e inicia Node Manager como serviço systemd
+  ansible.builtin.template:
+    src: nodemanager.service.j2
+    dest: /etc/systemd/system/weblogic-nodemanager.service
+    mode: '0644'
+  notify: reload systemd
+
+- name: Habilita e inicia Node Manager
+  ansible.builtin.systemd:
+    name: weblogic-nodemanager
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Aguarda Node Manager estar pronto (porta {{ nm_port }})
+  ansible.builtin.wait_for:
+    host: localhost
+    port: "{{ nm_port }}"
+    timeout: 60
+
+- name: Instala e inicia AdminServer como serviço systemd
+  ansible.builtin.template:
+    src: adminserver.service.j2
+    dest: /etc/systemd/system/weblogic-adminserver.service
+    mode: '0644'
+  notify: reload systemd
+
+- name: Habilita e inicia AdminServer
+  ansible.builtin.systemd:
+    name: weblogic-adminserver
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Aguarda AdminServer estar pronto (porta {{ wl_admin_port }})
+  ansible.builtin.wait_for:
+    host: localhost
+    port: "{{ wl_admin_port }}"
+    timeout: 120
+
+- name: Executa WLST 02 — cria Machine
+  ansible.builtin.command:
+    cmd: "{{ wlst_bin }} {{ wlst_scripts_dir }}/02-create-machine.py"
+  become_user: "{{ oracle_user }}"
+  environment:
+    JAVA_HOME: "/usr/lib/jvm/java-{{ jdk_major }}-openjdk-amd64"
+    WL_ADMIN_USER: "{{ wl_admin_user }}"
+    WL_ADMIN_PASSWORD: "{{ wl_admin_password }}"
+    WL_ADMIN_URL: "{{ wl_admin_url }}"
+    WL_DOMAIN_PATH: "{{ domain_home }}"
+    WL_MIDDLEWARE_HOME: "{{ middleware_home }}"
+  changed_when: true
+
+- name: Executa WLST 03 — cria Managed Servers
+  ansible.builtin.command:
+    cmd: "{{ wlst_bin }} {{ wlst_scripts_dir }}/03-create-managed-servers.py"
+  become_user: "{{ oracle_user }}"
+  environment:
+    JAVA_HOME: "/usr/lib/jvm/java-{{ jdk_major }}-openjdk-amd64"
+    WL_ADMIN_USER: "{{ wl_admin_user }}"
+    WL_ADMIN_PASSWORD: "{{ wl_admin_password }}"
+    WL_ADMIN_URL: "{{ wl_admin_url }}"
+    WL_DOMAIN_PATH: "{{ domain_home }}"
+    WL_MIDDLEWARE_HOME: "{{ middleware_home }}"
+  changed_when: true
+
+- name: Executa WLST 04 — cria Cluster
+  ansible.builtin.command:
+    cmd: "{{ wlst_bin }} {{ wlst_scripts_dir }}/04-create-cluster.py"
+  become_user: "{{ oracle_user }}"
+  environment:
+    JAVA_HOME: "/usr/lib/jvm/java-{{ jdk_major }}-openjdk-amd64"
+    WL_ADMIN_USER: "{{ wl_admin_user }}"
+    WL_ADMIN_PASSWORD: "{{ wl_admin_password }}"
+    WL_ADMIN_URL: "{{ wl_admin_url }}"
+    WL_DOMAIN_PATH: "{{ domain_home }}"
+    WL_MIDDLEWARE_HOME: "{{ middleware_home }}"
+  changed_when: true
+
+- name: Executa WLST 05 — cria Data Source
+  ansible.builtin.command:
+    cmd: "{{ wlst_bin }} {{ wlst_scripts_dir }}/05-create-datasource.py"
+  become_user: "{{ oracle_user }}"
+  environment:
+    JAVA_HOME: "/usr/lib/jvm/java-{{ jdk_major }}-openjdk-amd64"
+    WL_ADMIN_USER: "{{ wl_admin_user }}"
+    WL_ADMIN_PASSWORD: "{{ wl_admin_password }}"
+    WL_ADMIN_URL: "{{ wl_admin_url }}"
+    WL_DOMAIN_PATH: "{{ domain_home }}"
+    WL_MIDDLEWARE_HOME: "{{ middleware_home }}"
+  changed_when: true
+
+- name: Inicia Managed Servers via AdminServer
+  ansible.builtin.command:
+    cmd: "{{ wlst_bin }} {{ wlst_scripts_dir }}/start-managed-servers.py"
+  become_user: "{{ oracle_user }}"
+  environment:
+    JAVA_HOME: "/usr/lib/jvm/java-{{ jdk_major }}-openjdk-amd64"
+    WL_ADMIN_USER: "{{ wl_admin_user }}"
+    WL_ADMIN_PASSWORD: "{{ wl_admin_password }}"
+    WL_ADMIN_URL: "{{ wl_admin_url }}"
+  changed_when: true
+
+- name: Aguarda ms1 estar pronto (porta 8001)
+  ansible.builtin.wait_for:
+    host: localhost
+    port: 8001
+    timeout: 120
+
+- name: Aguarda ms2 estar pronto (porta 8002)
+  ansible.builtin.wait_for:
+    host: localhost
+    port: 8002
+    timeout: 120

@@ -1,0 +1,22 @@
+# Copie este arquivo para terraform.tfvars e ajuste os valores
+# cp terraform.tfvars.example terraform.tfvars
+
+# Caminho absoluto do VHDX base (Ubuntu 24.04 cloud image)
+# Baixe em: https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
+# Converta para VHDX: qemu-img convert -f qcow2 -O vhdx noble-server-cloudimg-amd64.img ubuntu-24.04.vhdx
+base_vhdx_path = "C:\\Users\\seu_usuario\\binaries\\ubuntu-24.04-server-cloudimg-amd64.vhdx"
+
+# Chave SSH pública para acesso à VM
+# Gere com: ssh-keygen -t ed25519 -C "weblogic-lab"
+ssh_public_key = "ssh-ed25519 AAAA... seu@email"
+
+# Senha do WebLogic (mínimo 8 chars, 1 maiúscula, 1 número, 1 especial)
+admin_password = "Welcome1#Lab"
+
+# Opcional: ajuste se necessário
+# vm_name        = "weblogic-lab"
+# vm_cpu         = 4
+# vm_memory_mb   = 8192
+# vm_disk_gb     = 40
+# vm_switch_name = "Default Switch"
+# vhd_dir        = "C:\\Hyper-V\\VHDs"

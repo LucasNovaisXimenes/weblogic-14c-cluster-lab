@@ -1,0 +1,20 @@
+[Unit]
+Description=Oracle WebLogic Node Manager
+After=network.target
+
+[Service]
+Type=simple
+User={{ oracle_user }}
+Group={{ oracle_group }}
+Environment="JAVA_HOME=/usr/lib/jvm/java-{{ jdk_major }}-openjdk-amd64"
+Environment="WL_HOME={{ middleware_home }}/wlserver"
+WorkingDirectory={{ domain_home }}
+ExecStart={{ middleware_home }}/wlserver/server/bin/startNodeManager.sh
+ExecStop=/bin/kill -TERM $MAINPID
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:{{ domain_home }}/nodemanager/nodemanager.log
+StandardError=append:{{ domain_home }}/nodemanager/nodemanager.log
+
+[Install]
+WantedBy=multi-user.target

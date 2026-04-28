@@ -1,0 +1,77 @@
+---
+- name: Cria estrutura de diretórios Oracle
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: '0755'
+  loop:
+    - "{{ oracle_base }}"
+    - "{{ middleware_home }}"
+    - "{{ domain_base }}"
+    - "{{ stage_dir }}"
+
+- name: Verifica se WebLogic já está instalado
+  ansible.builtin.stat:
+    path: "{{ middleware_home }}/wlserver/server/lib/weblogic.jar"
+  register: wls_jar
+
+- name: Copia instalador WebLogic para a VM
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../binaries/{{ wls_installer }}"
+    dest: "{{ stage_dir }}/{{ wls_installer }}"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: '0644'
+  when: not wls_jar.stat.exists
+
+- name: Copia response file para silent install
+  ansible.builtin.template:
+    src: wls_install.rsp.j2
+    dest: "{{ stage_dir }}/wls_install.rsp"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: '0644'
+  when: not wls_jar.stat.exists
+
+- name: Executa silent install do WebLogic
+  ansible.builtin.command:
+    cmd: >
+      /usr/lib/jvm/java-{{ jdk_major }}-openjdk-amd64/bin/java
+      -jar {{ stage_dir }}/{{ wls_installer }}
+      -silent -responseFile {{ stage_dir }}/wls_install.rsp
+    creates: "{{ middleware_home }}/wlserver/server/lib/weblogic.jar"
+  become_user: "{{ oracle_user }}"
+  environment:
+    JAVA_HOME: "/usr/lib/jvm/java-{{ jdk_major }}-openjdk-amd64"
+  when: not wls_jar.stat.exists
+
+- name: Corrige permissões de execução nos binários Derby
+  ansible.builtin.file:
+    path: "{{ middleware_home }}/wlserver/common/derby/bin/{{ item }}"
+    mode: '0755'
+  loop:
+    - ij
+    - startNetworkServer
+    - stopNetworkServer
+    - NetworkServerControl
+  ignore_errors: true
+
+- name: Copia scripts WLST para a VM
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../wlst/"
+    dest: "{{ wlst_scripts_dir }}/"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: '0644'
+
+- name: Valida que WLST está disponível
+  ansible.builtin.stat:
+    path: "{{ wlst_bin }}"
+  register: wlst_stat
+
+- name: Falha se WLST não encontrado
+  ansible.builtin.fail:
+    msg: "WLST não encontrado em {{ wlst_bin }}. Verifique a instalação do WebLogic."
+  when: not wlst_stat.stat.exists
