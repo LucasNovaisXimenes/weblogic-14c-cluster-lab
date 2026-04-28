@@ -1,0 +1,14 @@
+---
+- name: reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: restart nodemanager
+  ansible.builtin.systemd:
+    name: weblogic-nodemanager
+    state: restarted
+
+- name: restart adminserver
+  ansible.builtin.systemd:
+    name: weblogic-adminserver
+    state: restarted

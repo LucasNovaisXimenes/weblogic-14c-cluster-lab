@@ -1,0 +1,53 @@
+---
+# Variáveis globais do ambiente WebLogic 14c Lab
+
+# ---- Versões ----
+jdk_version: "11.0.22"
+jdk_major: "11"
+wls_installer: "fmw_14.1.1.0.0_wls_lite_generic.jar"
+
+# ---- Paths ----
+oracle_base: /u01/app/oracle
+middleware_home: /u01/app/oracle/middleware
+domain_base: /u01/app/oracle/domains
+domain_name: base_domain
+domain_home: "{{ domain_base }}/{{ domain_name }}"
+stage_dir: /u01/stage
+wlst_bin: "{{ middleware_home }}/oracle_common/common/bin/wlst.sh"
+wlst_scripts_dir: /u01/wlst
+
+# ---- Usuário do SO ----
+oracle_user: ubuntu
+oracle_group: ubuntu
+
+# ---- WebLogic ----
+wl_admin_user: weblogic
+wl_admin_password: "{{ vault_wl_admin_password | default('Welcome1#Lab') }}"
+wl_admin_port: 7001
+wl_admin_url: "t3://localhost:{{ wl_admin_port }}"
+wl_listen_address: localhost
+
+# ---- Node Manager ----
+nm_port: 5556
+nm_type: Plain
+
+# ---- Managed Servers ----
+managed_servers:
+  - name: ms1
+    port: 8001
+  - name: ms2
+    port: 8002
+
+cluster_name: cluster1
+machine_name: LocalMachine
+
+# ---- Data Source ----
+datasource_name: LabDS
+datasource_jndi: jdbc/LabDS
+derby_port: 1527
+derby_db: labdb
+
+# ---- App ----
+app_name: hello
+app_war: hello.war
+app_context_root: /hello
