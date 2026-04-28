@@ -25,10 +25,9 @@ resource "hyperv_machine_instance" "wl_vm" {
 
   processor_count = var.vm_cpu
 
-  dynamic_memory_enabled            = false
-  static_memory_maximum_bytes       = var.vm_memory_mb * 1024 * 1024
-  static_memory_startup_bytes       = var.vm_memory_mb * 1024 * 1024
-  static_memory_minimum_bytes       = var.vm_memory_mb * 1024 * 1024
+  memory_startup_bytes = var.vm_memory_mb * 1024 * 1024
+  memory_minimum_bytes = var.vm_memory_mb * 1024 * 1024
+  memory_maximum_bytes = var.vm_memory_mb * 1024 * 1024
 
   # Boot: disco principal, depois rede
   vm_firmware {
