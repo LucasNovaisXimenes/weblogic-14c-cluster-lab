@@ -25,13 +25,12 @@ resource "hyperv_machine_instance" "wl_vm" {
 
   processor_count = var.vm_cpu
 
+  static_memory        = true
   memory_startup_bytes = var.vm_memory_mb * 1024 * 1024
-  memory_minimum_bytes = var.vm_memory_mb * 1024 * 1024
-  memory_maximum_bytes = var.vm_memory_mb * 1024 * 1024
 
   # Boot: disco principal, depois rede
   vm_firmware {
-    enable_secure_boot    = false
+    enable_secure_boot = "Off"
     boot_order {
       boot_type           = "HardDiskDrive"
       controller_number   = "0"
